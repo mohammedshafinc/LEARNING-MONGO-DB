@@ -1,0 +1,121 @@
+Mongo db aggregation
+
+$match(match is same as find it will find all datas)
+
+$group (it will give the existing values from the Data)
+1.Normal
+
+ db.user.aggregate([{$group:{_id:"$gender"}}])
+[ { _id: 'female' }, { _id: 'male' } ],
+
+ db.user.aggregate([{$group:{_id:"$eyeColor"}}])
+[ { _id: 'blue' }, { _id: 'green' }, { _id: 'brown' } ],
+
+2.group by Nested fields:
+db.user.aggregate([{$group:{_id:"$company.location"}}])
+
+[
+  { _id: { country: 'Italy', address: '356 Newkirk Placez' } },
+  { _id: { country: 'Italy', address: '878 Erasmus Street' } },
+  { _id: { country: 'France', address: '744 Poly Place' } },
+  { _id: { country: 'France', address: '864 Times Placez' } },
+ etc......
+]
+3.group by multiple Fields
+(value will be nested documents)
+
+ db.user.aggregate([{$group:{_id:{eyeColor:"$eyeColor",favoriteFruit:"$favoriteFruit"}}}])
+[
+  { _id: { eyeColor: 'green', favoriteFruit: 'apple' } },
+  { _id: { eyeColor: 'green', favoriteFruit: 'strawberry' } },
+  { _id: { eyeColor: 'blue', favoriteFruit: 'banana' } },
+  { _id: { eyeColor: 'brown', favoriteFruit: 'banana' } },
+  { _id: { eyeColor: 'brown', favoriteFruit: 'strawberry' } },
+  { _id: { eyeColor: 'brown', favoriteFruit: 'apple' } },
+  { _id: { eyeColor: 'blue', favoriteFruit: 'apple' } },
+  { _id: { eyeColor: 'blue', favoriteFruit: 'strawberry' } },
+  { _id: { eyeColor: 'green', favoriteFruit: 'banana' } }
+],
+
+4.$match and $group
+db.user.aggregate([{$match:{gender:"female"}},{$group:{_id:{eyeColor:"$eyeColor",age:"$age",gender:"$gender"}}}])
+[
+  { _id: { eyeColor: 'brown', age: 23, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 24, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 21, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 33, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 34, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 31, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 34, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 26, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 38, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 25, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 24, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 20, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 39, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 39, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 28, gender: 'female' } },
+  { _id: { eyeColor: 'green', age: 20, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 40, gender: 'female' } },
+  { _id: { eyeColor: 'blue', age: 32, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 24, gender: 'female' } },
+  { _id: { eyeColor: 'brown', age: 33, gender: 'female' } }
+],
+
+$count
+Getting the count values from the db
+
+eg:
+1.db.user.aggregate([{$count:"allDocumentsCount"}])
+[ { allDocumentsCount: 51 } ]
+count time takes 0,21 seconds
+The 1 is  Server-side Count so it counts slowly
+
+
+2. db.user.aggregate([]).toArray().length
+51
+count time takes 1,7 seconds
+
+3.db.user.aggregate([]).itcount()
+51
+count time takes 1,4 seconds
+The 2 and 3 are Client-side Count so it counts fastly
+
+Example of $group and $count
+e([{$group:{_id:"$age"}},{$count:"age"}])
+[ { age: 20 } ]
+
+$sort
+
+db.user.aggregate([{$sort:{age:-1}}])
+db.user.aggregate([{$sort:{age:1}}])
+-1 means Descending and 1 means ascending
+
+$project
+ db.user.aggregate([{$project:{gender:1}}])
+[
+  { _id: ObjectId('658404e805a8b16a9ff2cb4c'), gender: 'female' },
+  { _id: ObjectId('658404e805a8b16a9ff2cb4d'), gender: 'female' },
+  { _id: ObjectId('658404e805a8b16a9ff2cb4e'), gender: 'male' },
+  { _id: ObjectId('658404e805a8b16a9ff2cb4f'), gender: 'female' },
+  etc .....
+
+]
+
+when we give 1 value it show ithe givern 1 values only we can as we want keys as 1 or if we give 0 it will show all properties of that document
+
+
+
+ db.user.aggregate([{$project:{_id:0,index:1,name:1,info:{eyes:"$eyeColor",company:"$company.title",country:"$company.location.country"}}}])
+[
+  {
+    index: 0,
+    name: 'Aurelia Gonzales',
+    info: { eyes: 'green', company: 'YURTURE', country: 'USA' }
+  },
+  {
+    index: 1,
+    name: 'Kitty Snow',
+    info: { eyes: 'blue', company: 'DIGITALUS', country: 'Italy' }
+  },
+
